@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.overcloud.pay.dao.OrderInfoDao">
+
+    <!-- 查询用户是否包月信息 -->
+    <select id="getUserAuthInfo" resultType="com.overcloud.pay.vo.AuthMonthlyUserVO" parameterType="map">
+        select * from t_bill_month where NOW()&gt;=createTime and NOW()&lt;=endTime and userId=#{userId} LIMIT 1
+	</select>
+
+
+    <!-- 进入大厅插入用信息 -->
+    <insert id="saveUserInfo" parameterType="map">
+         INSERT INTO t_user_info(userId,ipAddress,`status`,createtime,updatetime)
+          select #{userId},#{IP},#{status},now(),now() 
+          FROM DUAL WHERE NOT EXISTS(SELECT userId FROM t_user_info WHERE userId=#{userId})
+    </insert>
+
+    <insert id="saveVisitInfo" parameterType="map">
+        insert into game_visit (userId, pageName, mac, IP, visitTime, country, province, city) 
+        values
+            (#{userId},
+            #{pageName},#{mac},inet_aton(#{ip}),NOW(),
+            #{country},#{province},#{city})
+    </insert>
+
+    <!--      向包月log表中插入信息 -->
+    <insert id="saveMonthlyLogInfo" parameterType="map">
+      INSERT INTO t_bill_month_log(orderNo,userId,orderId,total_fee,spId,productID,productName,`status`,ipAddress,createTime,endTime,updateTime,days,monthlyName,monthlyNo,isPayMode,phone,resultcode,resultdesp,action,deviceId,isParent,payStatus)
+        VALUES(#{orderNo},#{userId},#{orderId},#{total_fee},#{spId},#{productId},#{productName},#{status},#{IP},NOW(),#{endTime},NOW(),#{days},#{monthlyName},#{monthlyNo},#{isPayMode},#{phone},#{resultcode},#{resultdesp},#{action},#{deviceId},#{isParent},#{payStatus})
+   </insert>
+
+    <!-- 通过map插入包月支付成功表信息 -->
+    <insert id="insertBillMonthInfos" parameterType="map">
+      INSERT INTO t_bill_month(orderNo,userId,orderId,total_fee,productID,productName,`status`,ipAddress,createTime,endTime,updateTime,days,monthlyName,monthlyNo,isPayMode,phone,action,deviceId,isParent,payStatus)
+        VALUES(#{orderNo},#{userId},#{orderId},#{total_fee},#{productId},#{productName},#{status},#{ipAddress},NOW(),#{endTime},NOW(),#{days},#{monthlyName},#{monthlyNo},#{isPayMode},#{phone},#{action},#{deviceId},#{isParent},#{payStatus})
+   </insert>
+   
+    <!-- 通过二维码实体回调插入包月支付成功表信息 -->
+    <insert id="insertBillMonthQRCodeInfos" parameterType="BillMonthLogVO">
+      INSERT INTO t_bill_month(orderNo,userId,orderId,total_fee,productID,productName,`status`,ipAddress,createTime,endTime,updateTime,days,monthlyName,monthlyNo,isPayMode,phone,action,deviceId,isParent,payStatus)
+        VALUES(#{orderNo},#{userId},#{orderId},#{total_fee},#{productID},#{productName},#{status},#{ipAddress},NOW(),#{endTime},NOW(),#{days},#{monthlyName},#{monthlyNo},#{isPayMode},#{phone},#{action},#{deviceId},#{isParent},#{payStatus})
+   </insert>
+   
+    <!--      向退订成功表中插入信息 -->
+   <insert id="saveUnsubscribePayInfo"  parameterType="map">
+      INSERT INTO t_bill_unsmonth(orderNo,transactionID,`status`,phone,userId,productID,productName,total_fee,ipAddress,createTime,endTime,updateTime,monthlyName,monthlyNo,resultcode,resultdesp)
+			        VALUES(#{orderNo},#{transactionID},#{status},#{phone},#{userId},#{productID},#{productName},#{total_fee},#{IP},NOW(),NOW(),NOW(),#{monthlyName},#{monthlyNo},#{resultcode},#{resultdesp})
+   </insert>
+ 
+    <!-- 获取包月包信息 -->
+    <select id="getMonthlyGameCategoryInfo" resultType="com.overcloud.pay.vo.MonthlyGameCategoryVo">
+        select * from monthly_game_category ORDER BY createDateTime DESC
+	</select>
+
+    <!-- 包月支付成功修改订单包月中log表中的记录 -->
+    <update id="updataBillMopnthLogOrder" parameterType="com.overcloud.pay.vo.BillMonthLogVO">
+        update t_bill_month_log set 
+        status=#{status},  updateTime=now() 
+        <if test="endTime != null  and endTime!=''">
+            ,endTime=#{endTime}
+        </if>
+        <if test="resultdesp != null  and resultdesp!=''">
+            ,resultdesp=#{resultdesp}
+        </if>
+         <if test="orderId != null  and orderId!=''">
+            ,orderId=#{orderId}
+        </if>
+        where orderNo=#{orderNo}
+    </update>
+
+
+    <!-- 根据订单ID获取包月支付log表中订单信息 -->
+    <select id="getBillMonthLogInfo" parameterType="string" resultType="com.overcloud.pay.vo.BillMonthLogVO">
+         SELECT * from t_bill_month_log WHERE orderNo =#{orderNo} 
+     </select>
+
+    <!-- 插入包月支付成功表信息 -->
+    <insert id="insertBillMonthInfo" parameterType="com.overcloud.pay.vo.BillMonthLogVO">
+      INSERT INTO t_bill_month(orderNo,userId,orderId,total_fee,productID,productName,`status`,ipAddress,createTime,endTime,updateTime,days,monthlyName,monthlyNo,isPayMode)
+        VALUES(#{orderNo},#{userId},#{orderId},#{total_fee},#{productID},#{productName},#{status},#{ipAddress},NOW(),#{endTime},NOW(),#{days},#{monthlyName},#{monthlyNo},#{isPayMode})
+   </insert>
+
+
+    <!-- 获取包月Log表中的信息是否支付成功 -->
+    <select id="getMonthOrderInfoCode" parameterType="String" resultType="com.overcloud.pay.vo.BillMonthLogVO">
+        select * from t_bill_month_log where orderNo=#{orderNo};
+	</select>
+
+
+    <!-- 获取该条订单是否插入 -->
+    <select id="getCountOrderNo" parameterType="com.overcloud.pay.vo.BillMonthLogVO" resultType="int">
+       select COUNT(orderNo)  from t_bill_month WHERE orderNo=#{orderNo}
+	</select>
+
+
+    <!-- 前端根据用户编号查询支付记录 -->
+    <select id="getGsydbyBillInfo" parameterType="com.overcloud.pay.vo.GsydbyOrderInfoVO"
+            resultType="com.overcloud.pay.vo.GsydbyOrderInfoVO">
+        SELECT
+        *
+        FROM
+        t_bill_month
+        <where>
+            <if test="phone !=null and phone!='' ">
+                phone = #{phone}
+            </if>
+            ORDER BY createTime DESC
+        </where>
+
+    </select>
+
+    <!-- 获取包月产品参数 -->
+
+    <select id="list" resultType="MonthlyParInfoVO">
+       select m.productId,m.productName,m.powerKey,m.price from monthly_par m
+	</select>
+
+    <select id="getPrice" resultType="String">
+        <!--  select m.productId,m.productName,m.powerKey,m.price from monthly_par m -->
+        select m.price from monthly_par m
+    </select>
+
+    <!-- 查询该deviceId是否存在在数据库中 -->
+    <select id="counDeviceId" parameterType="string" resultType="int">
+	 select count(*) from deviceidlist_senior where deviceId=#{deviceId} ;
+	  </select>
+
+	<!-- 给 music_filter 中插入数据-->
+	 <insert id="insFilter"  parameterType="String">
+    	  INSERT INTO music_filter(userId,type,reserved1,reserved2,createDateTime,updateTime)
+          select #{userId},1,1,1,now(),now() 
+          FROM DUAL WHERE NOT EXISTS(SELECT userId FROM music_filter WHERE userId=#{userId})
+     </insert>
+     
+     
+   
+   <!-- 获取包月产品参数 -->
+	<select id="getProductlist" resultType="MonthlyParInfoVO">
+       select * from monthly_par m limit 1
+	</select>
+   <!-- 获取包月产品参数 -->
+	<select id="getMonthlyPar" resultType="MonthlyParInfoVO">
+       select * from monthly_par m limit 1
+	</select>
+	
+	 <!-- 上个月订购的数据这个月是否续订 -->
+     <select id="getMonthInfos"    resultType="com.overcloud.pay.entity.MonthBill">
+        SELECT * FROM t_bill_month WHERE  PERIOD_DIFF(DATE_FORMAT(NOW(),'%Y%m'), DATE_FORMAT(createTime,'%Y%m')) =1  and isParent='1'  and payStatus='1' GROUP BY phone
+	</select>
+	<!-- 	SELECT * FROM t_bill_month  WHERE createTime  &lt; '2019-01-01 00:00:00'  GROUP BY phone  -->
+	
+	 <!-- 查询该用户本月是否订购过 -->
+	  <select id="getCountBYPPone" parameterType="string" resultType="int">
+	 	SELECT COUNT(*) FROM t_bill_month WHERE DATE_FORMAT( createTime, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' ) AND phone=#{phone};
+	  </select>
+	  
+	   <!-- 查询该用户是否存在在黑名单中-->
+	  <select id="getBlackList" parameterType="map" resultType="int">
+	 	select count(*) from black_list where userId=#{idValue} 
+	 	<if test="deviceId !=null and deviceId!='' ">
+	 			or deviceId=#{deviceId}
+			</if>
+	  </select>
+	  
+	    <!-- 获取二维码支付表中的信息是否支付成功 -->
+    <select id="getQRReturnUrlPayStatus" parameterType="String" resultType="com.overcloud.pay.vo.BillMonthLogVO">
+        select * from t_bill_month where orderNo=#{orderNo};
+	</select>
+	
+
+</mapper> 

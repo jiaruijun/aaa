@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.overcloud.pay.dao.HallDao">
+   
+    
+<!--       大厅充值列表查询 -->
+	<select id="selectList" resultType="com.overcloud.pay.entity.SpProduct">
+		SELECT
+		prodId,
+		prodName,
+		price
+		FROM
+		t_sp_prod t 
+<!-- 		WHERE t.prodId -->
+<!-- 		IN('BC1002','BC1001','BC1005','BC1010','BC1020','BC1050') -->
+
+
+	</select>
+
+
+</mapper> 

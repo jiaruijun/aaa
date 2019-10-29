@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.overcloud.pay.dao.CountDataDao">
+   
+    
+<!--       查询系统前一天的PVUV -->
+	<select id="getCountData" resultType="com.overcloud.pay.vo.CountDataVO">
+		SELECT COUNT(userId) as clicks,COUNT(DISTINCT userId) as clickRens FROM game_visit WHERE date(visitTime) = date_sub(curdate(),interval 1 day);
+	</select>
+	
+	<!--       查询系统前一天订购量 -->
+	<select id="getCountUserPay" resultType="Integer">
+		select COUNT(userId) as dingg from t_bill_month WHERE date(createTime) = date_sub(curdate(),interval 1 day)  and isParent='1'
+	</select>
+
+
+</mapper> 

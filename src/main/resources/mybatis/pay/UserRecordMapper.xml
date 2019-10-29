@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.overcloud.pay.dao.IUserRecordDao">
+
+<!--	// 读取contrller表中第一条记录的enbale字段  -->
+	  <select id="selectContrller" resultType="com.overcloud.pay.entity.UserControllers">
+	  select * from music_contrl limit 1;
+	  </select>
+	  
+	  
+	  <!-- // 判断filter表中记录个数 -->
+	  <select id="selectCountByUserId" parameterType="string" resultType="int">
+	  select count(*) from music_filter where userId=#{userId}
+	  </select>
+	  
+	  
+	  <select id="selectPercentList" parameterType="string" resultType="com.overcloud.pay.entity.PercentList">
+	  select * from music_percentlist where type=#{type}
+	  
+	  </select>
+     
+      <!-- 查询该用户是否订购过 -->
+	  <select id="counUserIdPay" parameterType="string" resultType="int">
+	 select count(*) from t_bill_month where userId=#{userId} and createTime > 	DATE_SUB(NOW(), INTERVAL 30 DAY) ;
+	  </select>
+
+</mapper> 
