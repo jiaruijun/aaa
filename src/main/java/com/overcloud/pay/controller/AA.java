@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.Random;
 
 
-public class AA {
+public class AA {  
 
 	public static void main(String[] args) {
   		
