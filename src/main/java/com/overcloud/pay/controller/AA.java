@@ -9,7 +9,7 @@ public class AA {
 
 	public static void main(String[] args) {
   		
-		String s1 = "aaabaa".replaceAll("aaa", "");
+		String s1 = "aaabaa".replaceAll("aaa555", "");
 		
 		Date d = new Date();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH");
